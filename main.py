@@ -80,7 +80,7 @@ def task1_func(path : str, df : pd.DataFrame):
     desired_cols = ['title','id','agent','body','repo_id','repo_url']
     new_df = df[desired_cols].copy()
 
-    # convert columns to respective types based on AI Dev website
+    # Convert columns to respective types based on AI Dev website
     new_df['title'] = new_df['title'].astype(str)
     new_df['id'] = new_df['id'].astype('int64')
     new_df['agent'] = new_df['agent'].astype(str)
@@ -91,7 +91,7 @@ def task1_func(path : str, df : pd.DataFrame):
     
 
 
-    # adjust characters that might cause issues in CSV delimiters
+    # Adjust characters that might cause issues in CSV delimiters
     new_df['title'] = new_df['title'].apply(clean_markdown_for_csv)
     new_df['body'] = new_df['body'].apply(clean_markdown_for_csv)
     new_df['agent'] = new_df['agent'].apply(clean_markdown_for_csv)
@@ -113,7 +113,7 @@ def task2_func(path : str, df : pd.DataFrame):
     desired_cols = ['id', 'language', 'stars', 'url']
     new_df = df[desired_cols].copy()
 
-    # convert columns to respective types based on AI Dev website
+    # Convert columns to respective types based on AI Dev website
     new_df['id'] = new_df['id'].astype('int64')
     new_df['language'] = new_df['language'].astype(str)
     new_df['stars'] = new_df['stars'].astype('float64')
@@ -125,7 +125,7 @@ def task2_func(path : str, df : pd.DataFrame):
 
 
 
-def task3_func():
+def task3_func(path : str, df : pd.DataFrame):
     '''
     From the data in the pr_task_type table create a CSV file with the following headers and data:
 
@@ -135,9 +135,27 @@ def task3_func():
     PRTYPE: Data related to `type`
     CONFIDENCE: Data related to `confidence`
     '''
-    pass
+    print("Starting Task3...")
+    desired_cols = ['id', 'title', 'reason', 'type', 'confidence']
+    new_df = df[desired_cols].copy()
 
-def task4_func():
+    # Convert columns to respective types based on AI Dev website
+    new_df['id'] = new_df['id'].astype('int64')
+    new_df['title'] = new_df['title'].astype(str)
+    new_df['reason'] = new_df['reason'].astype(str)
+    new_df['type'] = new_df['type'].astype(str)
+    new_df['confidence'] = new_df['confidence'].astype('int64')
+    
+    # Adjust characters that might cause issues in CSV delimiters 
+    new_df['title'] = new_df['title'].apply(clean_markdown_for_csv)
+    new_df['reason'] = new_df['reason'].apply(clean_markdown_for_csv)
+
+    new_df.to_csv(path)
+    print(f'Data Types for Task3: {new_df.dtypes}')
+    print("Task3 Complete")
+
+
+def task4_func(path : str, df : pd.DataFrame):
     '''
     From the data in the pr_commit_details table create a CSV file with the following headers and data:
 
@@ -151,7 +169,31 @@ def task4_func():
     PRCHANGECOUNT: Data related to `changes`
     PRDIFF: Data related to `patch`. Please remove special characters in the diff to avoid string encoding errors. 
     '''
-    pass
+    print("Starting Task4...")
+    desired_cols = ['pr_id', 'sha', 'message', 'filename', 'status', 'additions', 'deletions', 'changes', 'patch']
+    new_df = df[desired_cols].copy()
+
+    # Convert columns to respective types based on AI Dev website
+    new_df['pr_id'] = new_df['pr_id'].astype('int64')
+    new_df['sha'] = new_df['sha'].astype(str)
+    new_df['message'] = new_df['message'].astype(str)
+    new_df['filename'] = new_df['filename'].astype(str)
+    new_df['status'] = new_df['status'].astype(str)
+    new_df['additions'] = new_df['additions'].astype('float64')
+    new_df['deletions'] = new_df['deletions'].astype('float64')
+    new_df['changes'] = new_df['changes'].astype('float64')
+    new_df['patch'] = new_df['patch'].astype(str)
+    
+    # Adjust characters that might cause issues in CSV delimiters 
+    # TODO: might need different type of scrubbing for saving to CSV for patch diff string 
+    # has @, +, -, etc.
+    new_df['message'] = new_df['message'].apply(clean_markdown_for_csv)
+    new_df['filename'] = new_df['filename'].apply(clean_markdown_for_csv)
+    new_df['patch'] = new_df['patch'].apply(clean_markdown_for_csv)
+
+    new_df.to_csv(path)
+    print(f'Data Types for Task4: {new_df.dtypes}')
+    print("Task4 Complete")
 
 def task5_func():
     '''
@@ -175,8 +217,9 @@ def task5_func():
 
 if __name__ == "__main__":
 
+    # Load Dataset
     try:
-        # If we've saved the cache of data locally, lets us that so we don't have to wait
+        # If we've saved the cache of data locally, lets use that so we don't have to wait
         # on the connection/download of that data
         with open('df_data.pkl', 'rb') as file:
             # Load variables in the order they were dumped
@@ -210,10 +253,15 @@ if __name__ == "__main__":
     print(f"Length of all_PR = {len(all_pr_df)}")
     print(f"Length of all_repo = {len(all_repo_df)}")
     print(f"Length of all_pr_task_type = {len(pr_task_type_df)}")
-    print(f"Length of all_pr_commit = {len(pr_commit_details_df)}")
+    print(f"Length of pr_commit_details = {len(pr_commit_details_df)}")
 
+    # Generate CSVs for dataset
     task1_csv_path = "./all_pull_requests.csv"
     task2_csv_path = "./all_repository.csv"
+    task3_csv_path = "./pr_task_type.csv"
+    task4_csv_path = "./pr_commit_details.csv"
 
     task1_func(task1_csv_path, all_pr_df)
     task2_func(task2_csv_path, all_repo_df)
+    task3_func(task3_csv_path, pr_task_type_df)
+    task4_func(task4_csv_path, pr_commit_details_df)
