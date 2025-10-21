@@ -80,20 +80,27 @@ def task1_func(path : str, df : pd.DataFrame):
     desired_cols = ['title','id','agent','body','repo_id','repo_url']
     new_df = df[desired_cols].copy()
 
-    # convert respective columns to integers if applicable
+    # convert columns to respective types based on AI Dev website
+    new_df['title'] = new_df['title'].astype(str)
     new_df['id'] = new_df['id'].astype('int64')
+    new_df['agent'] = new_df['agent'].astype(str)
+    new_df['body'] = new_df['body'].astype(str)
+    # TODO: Determine if I need to actually convert this or not for CSVs to work...
     # new_df['repo_id'] = new_df['repo_id'].astype('int64')
+    new_df['repo_url'] = new_df['repo_url'].astype(str)
+    
+
 
     # adjust characters that might cause issues in CSV delimiters
     new_df['title'] = new_df['title'].apply(clean_markdown_for_csv)
     new_df['body'] = new_df['body'].apply(clean_markdown_for_csv)
     new_df['agent'] = new_df['agent'].apply(clean_markdown_for_csv)
-    new_df['title'] = new_df['title'].apply(clean_markdown_for_csv)
 
     new_df.to_csv(path)
+    print(f'Data Types for Task1: {new_df.dtypes}')
     print("Task1 Complete!")
 
-def task2_func():
+def task2_func(path : str, df : pd.DataFrame):
     '''
     From the data in the all_repository table create a CSV file with the following headers and data:
 
@@ -102,7 +109,21 @@ def task2_func():
     STARS: Data related to `stars`
     REPOURL: Data related to `url`
     '''
-    pass
+    print("Starting Task2...")
+    desired_cols = ['id', 'language', 'stars', 'url']
+    new_df = df[desired_cols].copy()
+
+    # convert columns to respective types based on AI Dev website
+    new_df['id'] = new_df['id'].astype('int64')
+    new_df['language'] = new_df['language'].astype(str)
+    new_df['stars'] = new_df['stars'].astype('float64')
+    new_df['url'] = new_df['url'].astype(str)
+
+    new_df.to_csv(path)
+    print(f'Data Types for Task2: {new_df.dtypes}')
+    print("Task2 Complete")
+
+
 
 def task3_func():
     '''
@@ -192,5 +213,7 @@ if __name__ == "__main__":
     print(f"Length of all_pr_commit = {len(pr_commit_details_df)}")
 
     task1_csv_path = "./all_pull_requests.csv"
+    task2_csv_path = "./all_repository.csv"
 
     task1_func(task1_csv_path, all_pr_df)
+    task2_func(task2_csv_path, all_repo_df)
