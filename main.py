@@ -230,9 +230,9 @@ def task5_func(path_for_csv : str):
     for index, row in pr_df.iterrows():
         # Get ID, Agent, Title, and Body from "all_pull_requests.csv"
         pr_id = row['id']
-        pr_agent = row['agent']
-        pr_title = row['title']
-        pr_body = row['body']
+        pr_agent = str(row['agent'])
+        pr_title = str(row['title'])
+        pr_body = str(row['body'])
         
         # Pull out the 'type' and 'confidence' using PR_ID from current row
         # using "pr_task_type.csv" dataframe
@@ -266,10 +266,10 @@ def task5_func(path_for_csv : str):
             
 
         
-
-def determine_security_status(title : str, body : str) -> bool:
+# NOTE: Function written with the help of Claude
+def determine_security_status(title : str, body : str) -> int:
     '''
-    TODO: SECURITY: A Boolean flag (1/0) that will report the status of the security status of the pull request. 
+    SECURITY: A Boolean flag (1/0) that will report the status of the security status of the pull request. 
     If security-related keywords appear in a body or title of the pull request, then the value will be 1, 0 otherwise. 
     Use the keywords from the list in `References`
 
@@ -277,8 +277,30 @@ def determine_security_status(title : str, body : str) -> bool:
     signedness, underflow, improper, unauthenticated, gain access, permission, cross site, css, xss, denial service, 
     dos, crash, deadlock, injection, request forgery, csrf, xsrf, forged, security, vulnerability, vulnerable, exploit, 
     attack, bypass, backdoor, threat, expose, breach, violate, fatal, blacklist, overrun, and insecure.
+    
+    NOTE: return value is a 1 or 0, not True of False
     '''
-    return True
+    security_keywords = [
+        'race', 'racy', 'buffer', 'overflow', 'stack', 'integer',
+        'signedness', 'underflow', 'improper', 'unauthenticated', 
+        'gain access', 'permission', 'cross site', 'css', 'xss', 
+        'denial service', 'dos', 'crash', 'deadlock', 'injection', 
+        'request forgery', 'csrf', 'xsrf', 'forged', 'security', 
+        'vulnerability', 'vulnerable', 'exploit', 'attack', 'bypass', 
+        'backdoor', 'threat', 'expose', 'breach', 'violate', 'fatal', 
+        'blacklist', 'overrun', 'insecure'
+    ]
+
+    title = title.lower()
+    body = body.lower()
+    title_has_security_word = any(keyword in title for keyword in security_keywords)
+    body_has_security_word = any(keyword in body for keyword in security_keywords)
+
+    ret_val = 0
+    if(title_has_security_word or body_has_security_word):
+        ret_val = 1
+
+    return ret_val
 
 if __name__ == "__main__":
 
@@ -308,6 +330,7 @@ if __name__ == "__main__":
         # For Task 4 (pr_commit_details)
         pr_commit_details_df = pd.read_parquet("hf://datasets/hao-li/AIDev/pr_commit_details.parquet")
 
+        # Save files locally so we don't have to pull the data from online again
         with open('df_data.pkl', 'wb') as file:
             pickle.dump(all_pr_df, file)
             pickle.dump(all_repo_df, file)
