@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import pickle
 import re
 
@@ -302,6 +303,60 @@ def determine_security_status(title : str, body : str) -> int:
 
     return ret_val
 
+def task6_func():
+    # TODO: Define this function/might only be manual based on professor's response
+    pass
+
+def task7_func(path_for_csv : str):
+    '''
+    Create an additional column called VULNERABLEFILE in the CSV from Task-4. It will be a Boolean flag: 1 or 0. 
+    You will assign 1 if: (i) the file is a Python program; (ii) the file is available in the repository; and 
+    (iii) the file contains >=1 vulnerability based on the scanning results of Bandit.
+    '''
+    print("Starting Task7...")
+
+    column_data_types = {
+        'pr_id': 'int64',
+        'sha': 'str',
+        'message': 'str',
+        'filename': 'str',
+        'status': 'str',
+        'additions': 'float64',
+        'deletions': 'float64',
+        'changes': 'float64',
+        'patch': 'str',
+    }
+
+    # Load CSV from Task-4 and add new column
+    task7_df = pd.read_csv("pr_commit_details.csv", dtype=column_data_types)
+    task7_df['vulnerablefile'] = np.nan
+
+    # Iterate through all rows and determine if this row meets the criteria listed above
+    unique_status_vals = task7_df['status'].unique()
+
+    # NOTE Pull the row if the status value is modified, added, or renamed (should we include renamed?)
+    print(f"Unique Status Values= {unique_status_vals}")
+    # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed' (should we include renamed?)
+    status_vals_for_avail_file = ['modified', 'added', 'renamed']
+    task7_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
+    
+    # NOTE: Use function that checks if a file is a Python file (should end in .py)
+    task7_df = task7_df[task7_df['filename'].apply(is_python_file)]
+    
+    # TODO: iterate through remaining rows and run bandit (might also be able to use '.apply()' function)
+    for index, row in task7_df.iterrows():
+        continue
+
+
+    task7_df.to_csv(path_for_csv)
+    print("Task7 Complete")
+
+def is_python_file(filepath : str):
+    """
+    Check if the given filepath is a Python file.
+    """
+    return filepath.lower().endswith('.py')
+
 if __name__ == "__main__":
 
     # Load Dataset
@@ -349,9 +404,12 @@ if __name__ == "__main__":
     task3_csv_path = "./pr_task_type.csv"
     task4_csv_path = "./pr_commit_details.csv"
     task5_csv_path = "./task5_values.csv"
+    task7_csv_path = "./task7_values.csv"
 
     # task1_func(task1_csv_path, all_pr_df)
     # task2_func(task2_csv_path, all_repo_df)
     # task3_func(task3_csv_path, pr_task_type_df)
     # task4_func(task4_csv_path, pr_commit_details_df)
-    task5_func(task5_csv_path)
+    # task5_func(task5_csv_path)
+    # TODO: Task 6?
+    task7_func(task7_csv_path)
