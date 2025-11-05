@@ -259,6 +259,8 @@ def task5_func(path_for_csv : str):
         # Now add all this information to dataframe
         task5_df.loc[len(task5_df)] = [pr_id, pr_agent, pr_type, pr_confidence, pr_security]
 
+    # TODO: Might need to filter out duplicate PRs...
+
     # Now save dataframe as csv
     task5_df.to_csv(path_for_csv)
     print(f"Task5 - Found {pr_matches_cnt} out of {len(pr_df)} matches in All PRs and Task Type CSVs")
@@ -305,7 +307,20 @@ def determine_security_status(title : str, body : str) -> int:
 
 def task6_func():
     # TODO: Define this function/might only be manual based on professor's response
-    pass
+    print("counting the number of unique PRs in each CSV")
+    pr_df = pd.read_csv("all_pull_requests.csv")
+    pr_task_type_df = pd.read_csv("pr_task_type.csv")
+    task5_df = pd.read_csv("task5_values.csv")
+
+    all_unique_pr_cnt = len(pr_df['id'].unique())
+    unique_task_pr_cnt = len(pr_task_type_df['id'].unique())
+    unique_task5_pr_cnt = len(task5_df['id'].unique())
+
+    print(f"Unique PR IDs fro all_pull_requests.csv = {all_unique_pr_cnt}")
+    print(f"Unique PR IDs fro pr_task_type.csv = {unique_task_pr_cnt}")
+    print(f"Unique PR IDs fro task5_values.csv = {unique_task5_pr_cnt}")
+
+
 
 def task7_func(path_for_csv : str):
     '''
@@ -331,6 +346,8 @@ def task7_func(path_for_csv : str):
     task7_df = pd.read_csv("pr_commit_details.csv", dtype=column_data_types)
     task7_df['vulnerablefile'] = np.nan
 
+    print(f"Count for Task7 prior to status and Python file check: {len(task7_df)}")
+
     # Iterate through all rows and determine if this row meets the criteria listed above
     unique_status_vals = task7_df['status'].unique()
 
@@ -339,15 +356,20 @@ def task7_func(path_for_csv : str):
     # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed' (should we include renamed?)
     status_vals_for_avail_file = ['modified', 'added', 'renamed']
     task7_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
+
+    print(f"New row count for task7 after status check: {len(task7_df)}")
     
     # NOTE: Use function that checks if a file is a Python file (should end in .py)
     task7_df = task7_df[task7_df['filename'].apply(is_python_file)]
+
+    print(f"New row count for task7 after python check: {len(task7_df)}")
     
     # TODO: iterate through remaining rows and run bandit (might also be able to use '.apply()' function)
-    for index, row in task7_df.iterrows():
-        continue
+    # for index, row in task7_df.iterrows():
+    #     continue
 
 
+    # Uncomment this once you've figured out the unique row thing
     task7_df.to_csv(path_for_csv)
     print("Task7 Complete")
 
@@ -412,4 +434,5 @@ if __name__ == "__main__":
     # task4_func(task4_csv_path, pr_commit_details_df)
     # task5_func(task5_csv_path)
     # TODO: Task 6?
+    # task6_func()
     task7_func(task7_csv_path)
