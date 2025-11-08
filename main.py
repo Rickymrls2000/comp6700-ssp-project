@@ -7,6 +7,8 @@ import os
 import requests
 from pathlib import Path
 from dotenv import load_dotenv
+# Includes for running bandit
+import subprocess
 
 # Read in from .env file, see '.env-sample' for information
 load_dotenv()
@@ -367,21 +369,22 @@ def task7_func(path_for_csv : str):
     print(f"Unique Status Values= {unique_status_vals}")
     # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed' (should we include renamed?)
     status_vals_for_avail_file = ['modified', 'added', 'renamed']
-    task7_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
+    filtered_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
 
-    print(f"New row count for task7 after status check: {len(task7_df)}")
+    print(f"New row count for filtered task7_df after status check: {len(filtered_df)}/{len(task7_df)}")
     
     # NOTE: Use function that checks if a file is a Python file (should end in .py)
-    task7_df = task7_df[task7_df['filename'].apply(is_python_file)]
+    filtered_df = filtered_df[filtered_df['filename'].apply(is_python_file)]
 
-    print(f"New row count for task7 after python check: {len(task7_df)}")
+    print(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
+    print(f"Dataframe for task7 = {filtered_df}")
 
 
     # Now go through and pull all the files down and store them locally to scan with bandit
     all_pr_df = pd.read_csv("all_pull_requests.csv") # Contains 'repo_url', and pr 'id' to pull down file locally
     
-    # TODO: iterate through remaining rows and run bandit (might also be able to use '.apply()' function)
-    for index, row in task7_df.iterrows():
+    # Iterate through filtered rows and determine if they have vulnerabilities using Bandit
+    for index, row in filtered_df.iterrows():
         # First, get the pr_id so you can find the repo information in the all_pr_df
         pr_id = row['pr_id']
         pr_filepath = row['filename']
@@ -406,7 +409,12 @@ def task7_func(path_for_csv : str):
             print(f"{repo_url}{pr_filepath} has already been downloaded!")
 
         # TODO: Run bandit on downloaded file
-        
+        command = ["bandit", "-r", download_path]
+        scan_output = subprocess.run(command, capture_output=True, text=True)
+        print(f"Output (type:{type(scan_output.stdout)}: {scan_output.stdout})")
+        if(get_total_bandit_issues(scan_output.stdout) >= 1):
+            # Set the 'vulnerablefile' column to 1 for this row in our main task7_df
+            task7_df.at[index, 'vulnerablefile'] = 1
 
     # Uncomment this once you've figured out the unique row thing
     task7_df.to_csv(path_for_csv)
@@ -592,6 +600,27 @@ def download_github_file_api(repo_url, file_path, output_dir='./local-github-fil
         print(f"Error downloading file: {e}")
         return None
 
+# NOTE: Generated with the help of Claude
+def get_total_bandit_issues(bandit_output):
+    """
+    Get just the total number of issues from Bandit output.
+    
+    Args:
+        bandit_output: String containing Bandit scan results
+        
+    Returns:
+        int: Total number of issues found
+    """
+    match = re.search(
+        r'Total issues \(by severity\):\s+Undefined: (\d+)\s+Low: (\d+)\s+Medium: (\d+)\s+High: (\d+)',
+        bandit_output,
+        re.IGNORECASE
+    )
+    
+    if match:
+        return sum(int(match.group(i)) for i in range(1, 5))
+    
+    return 0
 
 if __name__ == "__main__":
 
