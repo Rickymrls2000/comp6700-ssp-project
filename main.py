@@ -6,6 +6,15 @@ import os
 # Includes for git download function
 import requests
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Read in from .env file, see '.env-sample' for information
+load_dotenv()
+
+GIT_USERNAME = os.getenv("GIT_USERNAME")
+GIT_PERSONAL_ACCESS_TOKEN = os.getenv("GIT_TOKEN")
+
+# print(f"Loaded .env variables: {GIT_USERNAME}-{GIT_PERSONAL_ACCESS_TOKEN}")
 
 # Helper functions (might be able to be scratched...)
 def update_stop_characters(text : str):
@@ -383,6 +392,7 @@ def task7_func(path_for_csv : str):
         else:
             print(f"{repo_url}{pr_filepath} has NOT been downloaded!")
             download_github_file(repo_url, pr_filepath)
+            # download_github_file_api(repo_url, pr_filepath)
 
 
     # Uncomment this once you've figured out the unique row thing
@@ -474,6 +484,7 @@ def download_github_file(repo_url : str, file_path : str, output_dir='./local-gi
         
         # If main doesn't work, try 'master' branch
         if response.status_code == 404:
+            print(f"404 received on 'main' with this URL: {raw_url}")
             raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/master/{file_path}"
             response = requests.get(raw_url)
         
@@ -497,6 +508,77 @@ def download_github_file(repo_url : str, file_path : str, output_dir='./local-gi
     except requests.exceptions.RequestException as e:
         print(f"Error downloading file: {e}")
         return None
+    
+# NOTE: Generated with the help of Claude
+# Alternative version using GitHub API (requires authentication for private repos)
+def download_github_file_api(repo_url, file_path, output_dir='./local-github-filestore', token=None):
+    """
+    Download a single file from GitHub using the API.
+    
+    Args:
+        repo_url: GitHub repo URL
+        file_path: Path to the file within the repo
+        output_dir: Local directory to save the file (default is ./local-github-filestore)
+        token: GitHub personal access token (optional, for private repos)
+        
+    Returns:
+        str: Path to the downloaded file, or None if download failed
+    """
+    # Parse the repo URL
+    if 'api.github.com/repos/' in repo_url:
+        parts = repo_url.replace('https://api.github.com/repos/', '').strip('/').split('/')
+    elif 'github.com/' in repo_url:
+        parts = repo_url.replace('https://github.com/', '').strip('/').split('/')
+    else:
+        print(f"Invalid GitHub URL: {repo_url}")
+        return None
+    
+    if len(parts) < 2:
+        print(f"Could not parse owner/repo from URL: {repo_url}")
+        return None
+    
+    owner, repo = parts[0], parts[1]
+    
+    # Construct API URL
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{file_path}"
+    
+    headers = {}
+    if token:
+        headers['Authorization'] = f'token {token}'
+    
+    try:
+        response = requests.get(api_url, headers=headers, auth=(GIT_USERNAME, GIT_PERSONAL_ACCESS_TOKEN))
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Get the download URL
+        download_url = data.get('download_url')
+        if not download_url:
+            print("Could not find download URL in API response")
+            return None
+        
+        # Download the file content
+        file_response = requests.get(download_url)
+        file_response.raise_for_status()
+        
+        # Create output directory structure
+        # output_path = Path(output_dir) / file_path
+        full_output_path = f"{output_dir}/{owner}-{repo}/"
+        output_path = Path(full_output_path) / file_path
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        # Write the file
+        with open(output_path, 'wb') as f:
+            f.write(file_response.content)
+        
+        print(f"Successfully downloaded: {output_path}")
+        return str(output_path)
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading file: {e}")
+        return None
+
 
 if __name__ == "__main__":
 
