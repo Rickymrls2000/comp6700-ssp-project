@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import re
 import os
+import logging
 # Includes for git download function
 import requests
 from pathlib import Path
@@ -15,8 +16,23 @@ load_dotenv()
 
 GIT_USERNAME = os.getenv("GIT_USERNAME")
 GIT_PERSONAL_ACCESS_TOKEN = os.getenv("GIT_TOKEN")
-
 # print(f"Loaded .env variables: {GIT_USERNAME}-{GIT_PERSONAL_ACCESS_TOKEN}")
+
+# Create file handler and set format for log output
+file_handler = logging.FileHandler('output.log')
+time_format = "%Y-%m-%d %H:%M:%S"
+formatter = logging.Formatter("%(asctime)s %(funcName)s() - %(levelname)s : %(message)s",
+                              datefmt=time_format)
+file_handler.setFormatter(formatter)
+
+# Add file handler to logger to allow for .log file to be written to with
+# desired format.
+logger = logging.getLogger(__name__)
+logger.addHandler(file_handler)
+
+# Set the logger level to DEBUG to allow us to see DEBUG messages and greater (e.g. ERROR)
+logger.setLevel(logging.DEBUG)
+
 
 # Helper functions (might be able to be scratched...)
 def update_stop_characters(text : str):
@@ -342,6 +358,7 @@ def task7_func(path_for_csv : str):
     (iii) the file contains >=1 vulnerability based on the scanning results of Bandit.
     '''
     print("Starting Task7...")
+    logger.info("Starting Task7...")
 
     column_data_types = {
         'pr_id': 'int64',
@@ -377,44 +394,54 @@ def task7_func(path_for_csv : str):
     filtered_df = filtered_df[filtered_df['filename'].apply(is_python_file)]
 
     print(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
-    print(f"Dataframe for task7 = {filtered_df}")
+    logger.debug(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
 
 
     # Now go through and pull all the files down and store them locally to scan with bandit
     all_pr_df = pd.read_csv("all_pull_requests.csv") # Contains 'repo_url', and pr 'id' to pull down file locally
     
     # Iterate through filtered rows and determine if they have vulnerabilities using Bandit
-    for index, row in filtered_df.iterrows():
-        # First, get the pr_id so you can find the repo information in the all_pr_df
-        pr_id = row['pr_id']
-        pr_filepath = row['filename']
+    bandit_output_path = "./task7-bandit-results.txt"
+    with open(bandit_output_path, "w") as f:
+        for index, row in filtered_df.iterrows():
+            # First, get the pr_id so you can find the repo information in the all_pr_df
+            pr_id = row['pr_id']
+            pr_filepath = row['filename']
 
-        # Next, get the URL from the all_pr_df
-        all_pr_df_row = all_pr_df.loc[all_pr_df['id'] == pr_id]
-        repo_url = all_pr_df_row['repo_url'].item()
-        
-        # Attempt download of the file and get filepath if it exists
-        download_path = is_file_already_downloaded(repo_url, pr_filepath)
-        
-        if(download_path == None):
-            print(f"{repo_url}{pr_filepath} has NOT been downloaded!")
-            download_path = download_github_file(repo_url, pr_filepath)
-            # TODO: Remove API function?
-            # download_github_file_api(repo_url, pr_filepath)
+            # Next, get the URL from the all_pr_df
+            all_pr_df_row = all_pr_df.loc[all_pr_df['id'] == pr_id]
+            repo_url = all_pr_df_row['repo_url'].item()
             
-            # If the file wasn't able to be downloaded, just continue onward
+            # Attempt download of the file and get filepath if it exists
+            print(f"Checking file: {pr_filepath}")
+            download_path = is_file_already_downloaded(repo_url, pr_filepath)
+            
             if(download_path == None):
-                continue
-        else:
-            print(f"{repo_url}{pr_filepath} has already been downloaded!")
+                logger.debug(f"{repo_url}{pr_filepath} has NOT been downloaded!")
+                download_path = download_github_file(repo_url, pr_filepath)
+                # TODO: Remove API function?
+                # download_github_file_api(repo_url, pr_filepath)
+                
+                # If the file wasn't able to be downloaded, just continue onward
+                if(download_path == None):
+                    logger.error(f"Unable to download file from idx = {index}: {repo_url}/{pr_filepath}")
+                    continue
+            else:
+                logger.debug(f"{repo_url}{pr_filepath} has already been downloaded!")
 
-        # TODO: Run bandit on downloaded file
-        command = ["bandit", "-r", download_path]
-        scan_output = subprocess.run(command, capture_output=True, text=True)
-        print(f"Output (type:{type(scan_output.stdout)}: {scan_output.stdout})")
-        if(get_total_bandit_issues(scan_output.stdout) >= 1):
-            # Set the 'vulnerablefile' column to 1 for this row in our main task7_df
-            task7_df.at[index, 'vulnerablefile'] = 1
+            # TODO: Run bandit on downloaded file and store in output file
+            command = ["bandit", "-r", download_path]
+            scan_output = subprocess.run(command, capture_output=True, text=True)
+            print(f"Output (type:{type(scan_output.stdout)}: {scan_output.stdout})")
+            f.write(scan_output.stdout)
+            
+            # Based on bandit scan, determine if file needs to be marked as VULNERABLE
+            issue_cnt = get_total_bandit_issues(scan_output.stdout)
+            logger.debug(f"Issue Count for {download_path}: {issue_cnt}")
+            if(issue_cnt >= 1):
+                # Set the 'vulnerablefile' column to 1 for this row in our main task7_df
+                task7_df.at[index, 'vulnerablefile'] = 1
+                logger.info(f"Logging file as VULNERABLE: {download_path} - task7_df_row_idx = {index}")
 
     # Uncomment this once you've figured out the unique row thing
     task7_df.to_csv(path_for_csv)
@@ -488,10 +515,12 @@ def download_github_file(repo_url : str, file_path : str, output_dir='./local-gi
         parts = repo_url.replace('https://github.com/', '').strip('/').split('/')
     else:
         print(f"Invalid GitHub URL: {repo_url}")
+        logger.error(f"Invalid GitHub URL: {repo_url}")
         return None
     
     if len(parts) < 2:
         print(f"Could not parse owner/repo from URL: {repo_url}")
+        logger.error(f"Could not parse owner/repo from URL: {repo_url}")
         return None
     
     owner, repo = parts[0], parts[1]
@@ -505,7 +534,8 @@ def download_github_file(repo_url : str, file_path : str, output_dir='./local-gi
         
         # If main doesn't work, try 'master' branch
         if response.status_code == 404:
-            print(f"404 received on 'main' with this URL: {raw_url}")
+            # print(f"404 received on 'main' with this URL: {raw_url}")
+            logger.warning(f"404 received on 'main' with this URL: {raw_url}")
             raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/master/{file_path}"
             response = requests.get(raw_url)
         
@@ -517,17 +547,18 @@ def download_github_file(repo_url : str, file_path : str, output_dir='./local-gi
         output_path = Path(full_output_path) / file_path
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        print(f"Saving file to {full_output_path}")
+        # print(f"Saving file to {full_output_path}")
+        logger.debug(f"Saving file to {full_output_path}")
         
         # Write the file
         with open(output_path, 'wb') as f:
             f.write(response.content)
         
-        print(f"Successfully downloaded: {output_path}")
+        logger.info(f"Successfully downloaded: {output_path}")
         return str(output_path)
         
     except requests.exceptions.RequestException as e:
-        print(f"Error downloading file: {e}")
+        logger.error(f"Error downloading file: {e}")
         return None
     
 # NOTE: Generated with the help of Claude
@@ -678,4 +709,4 @@ if __name__ == "__main__":
     # task5_func(task5_csv_path)
     # TODO: Task 6?
     # task6_func()
-    task7_func(task7_csv_path)
+    # task7_func(task7_csv_path)
