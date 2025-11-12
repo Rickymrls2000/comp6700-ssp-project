@@ -96,7 +96,6 @@ def clean_markdown_for_csv(text):
     
     return text
 
-
 def task1_func(path : str, df : pd.DataFrame):
     '''
     From the data in the all_pull_request table create a CSV file with the following headers and data:
@@ -183,7 +182,6 @@ def task3_func(path : str, df : pd.DataFrame):
     new_df.to_csv(path)
     print(f'Data Types for Task3: {new_df.dtypes}')
     print("Task3 Complete")
-
 
 def task4_func(path : str, df : pd.DataFrame):
     '''
@@ -295,9 +293,7 @@ def task5_func(path_for_csv : str):
     print(f"Task5 - Found {pr_matches_cnt} out of {len(pr_df)} matches in All PRs and Task Type CSVs")
     print(f"Task5 - {no_task_type_for_pr_cnt} out of {len(pr_df)} PRs without matches")
     print("Task5 Complete")
-            
-
-        
+     
 # NOTE: Function written with the help of Claude
 def determine_security_status(title : str, body : str) -> int:
     '''
@@ -325,31 +321,22 @@ def determine_security_status(title : str, body : str) -> int:
 
     title = title.lower()
     body = body.lower()
-    title_has_security_word = any(keyword in title for keyword in security_keywords)
-    body_has_security_word = any(keyword in body for keyword in security_keywords)
+    # TODO: remove this since it might be outdated
+    # title_has_security_word = any(keyword in title for keyword in security_keywords)
+    # body_has_security_word = any(keyword in body for keyword in security_keywords)
+    # 
+    # ret_val = 0
+    # if(title_has_security_word or body_has_security_word):
+    #     ret_val = 1
+    
+    # From Stack Overflow to look for whole words: https://stackoverflow.com/questions/4154961/find-substring-in-string-but-only-if-whole-words
+    for word in security_keywords:
+        if re.search(r"\b" + re.escape(word) + r"\b", title):
+            return 1
+        if re.search(r"\b" + re.escape(word) + r"\b", body):
+            return 1
 
-    ret_val = 0
-    if(title_has_security_word or body_has_security_word):
-        ret_val = 1
-
-    return ret_val
-
-def task6_func():
-    # TODO: Define this function/might only be manual based on professor's response
-    print("counting the number of unique PRs in each CSV")
-    pr_df = pd.read_csv("all_pull_requests.csv")
-    pr_task_type_df = pd.read_csv("pr_task_type.csv")
-    task5_df = pd.read_csv("task5_values.csv")
-
-    all_unique_pr_cnt = len(pr_df['id'].unique())
-    unique_task_pr_cnt = len(pr_task_type_df['id'].unique())
-    unique_task5_pr_cnt = len(task5_df['id'].unique())
-
-    print(f"Unique PR IDs fro all_pull_requests.csv = {all_unique_pr_cnt}")
-    print(f"Unique PR IDs fro pr_task_type.csv = {unique_task_pr_cnt}")
-    print(f"Unique PR IDs fro task5_values.csv = {unique_task5_pr_cnt}")
-
-
+    return 0
 
 def task7_func(path_for_csv : str):
     '''
@@ -706,7 +693,5 @@ if __name__ == "__main__":
     # task2_func(task2_csv_path, all_repo_df)
     # task3_func(task3_csv_path, pr_task_type_df)
     # task4_func(task4_csv_path, pr_commit_details_df)
-    # task5_func(task5_csv_path)
-    # TODO: Task 6?
-    # task6_func()
+    task5_func(task5_csv_path)
     # task7_func(task7_csv_path)
