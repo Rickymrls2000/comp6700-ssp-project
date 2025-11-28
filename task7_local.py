@@ -74,7 +74,7 @@ def task7_func(path_for_csv : str):
     all_pr_df = pd.read_csv("all_pull_requests.csv") # Contains 'repo_url', and pr 'id' to pull down file locally
     
     # Iterate through filtered rows and determine if they have vulnerabilities using Bandit
-    bandit_output_path = "./task7-bandit-results-TEST.txt"
+    bandit_output_path = "./task7-bandit-results.txt"
     with open(bandit_output_path, "w") as f:
         for index, row in filtered_df.iterrows():
             # First, get the pr_id so you can find the repo information in the all_pr_df

@@ -1,2 +1,15 @@
 project-venv/
 .env
+
+# Ignore all the locally created files
+all_pull_requests.csv
+all_repository.csv
+df_data.pkl
+local-github-filestore
+pr_commit_details.csv
+pr_task_type.csv
+task5_values.csv
+task6_values.csv
+task7-bandit-results.txt
+task7_values.csv
+~$task6_values.xlsx
