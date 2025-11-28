@@ -16,7 +16,7 @@ import pandas as pd
 import sys
 
 
-def collect_pr_info(output_filename='task6_pr_info.txt'):
+def collect_pr_info(output_filename='./script-output/task6_pr_info.txt'):
     print("Running Title/Info PR collection...")
     all_prs_df = pd.read_csv("all_pull_requests.csv")
     task5_df = pd.read_csv("task5_values.csv")

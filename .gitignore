@@ -1,5 +1,7 @@
 project-venv/
 .env
+.vscode/
+.DS_Store
 
 # Ignore all the locally created files
 all_pull_requests.csv
