@@ -1,7 +1,7 @@
 """
 Author: Gabriel Morales
 
-This file serves as an independent script to re-run the bandit scans locally and store in a "test" file.
+This file serves as an independent script to re-run the bandit scans locally and store in an output text file.
 The purpose is to primarily serve as a test tool and to validate the scan execution without having to 
 iterate through and attempt a download for all .py files from github that we've already determined don't
 exist (see task7_func() in main.py)
@@ -24,6 +24,7 @@ logger.addHandler(file_handler)
 # Set the logger level to DEBUG to allow us to see DEBUG messages and greater (e.g. ERROR)
 logger.setLevel(logging.DEBUG)
 
+# TODO: Make sure this matches main.py task7_func()
 def task7_func(path_for_csv : str):
     '''
     Create an additional column called VULNERABLEFILE in the CSV from Task-4. It will be a Boolean flag: 1 or 0. 
