@@ -91,6 +91,9 @@ def task7_func(path_for_csv : str):
             download_path = is_file_already_downloaded(repo_url, pr_filepath)
             
             if(download_path == None):
+                # NOTE: This is where this differs from the same function in main.py.
+                # In this case, we don't attempt to download the file here if it doesn't exist
+                # locally.
                 logger.debug(f"{repo_url}{pr_filepath} has NOT been downloaded locally! - not scanning file")
                 continue
             else:
