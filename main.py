@@ -601,6 +601,10 @@ if __name__ == "__main__":
     print(f"Length of all_pr_task_type = {len(pr_task_type_df)}")
     print(f"Length of pr_commit_details = {len(pr_commit_details_df)}")
 
+    # Make local directories for output files
+    local_output_folder = "./script-output"
+    Path(local_output_folder).mkdir(exist_ok=True)
+
     # Generate CSVs for dataset
     task1_csv_path = "./all_pull_requests.csv"
     task2_csv_path = "./all_repository.csv"
