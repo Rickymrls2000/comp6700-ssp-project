@@ -156,3 +156,5 @@ The final CSVs that are complete for this project are located in the `final_csvs
 * [COMP6700 course project github page](https://github.com/paser-group/continuous-secsoft/blob/master/fall25-ssp/project/README.md) - used for general information about the project and usage of any embedded links to complete the assigned tasks
 
 * [Bandit](https://bandit.readthedocs.io/en/latest/start.html) - used for [Task 7](#task-7-comp6700-only) for the vulnerability scans.
+
+* [Stack Overflow](https://stackoverflow.com/questions) - used for Python library, syntax, and recommendations. Code that borrows directly from Stack Overflow is cited in comments accordingly.

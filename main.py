@@ -278,8 +278,6 @@ def task5_func(path_for_csv : str):
         # Now add all this information to dataframe
         task5_df.loc[len(task5_df)] = [pr_id, pr_agent, pr_type, pr_confidence, pr_security]
 
-    # TODO: Might need to filter out duplicate PRs...
-
     # Now save dataframe as csv
     task5_df.to_csv(path_for_csv)
     print(f"Task5 - Found {pr_matches_cnt} out of {len(pr_df)} matches in All PRs and Task Type CSVs")
@@ -313,13 +311,6 @@ def determine_security_status(title : str, body : str) -> int:
 
     title = title.lower()
     body = body.lower()
-    # TODO: remove this since it might be outdated
-    # title_has_security_word = any(keyword in title for keyword in security_keywords)
-    # body_has_security_word = any(keyword in body for keyword in security_keywords)
-    # 
-    # ret_val = 0
-    # if(title_has_security_word or body_has_security_word):
-    #     ret_val = 1
     
     # From Stack Overflow to look for whole words: https://stackoverflow.com/questions/4154961/find-substring-in-string-but-only-if-whole-words
     for word in security_keywords:
@@ -613,9 +604,9 @@ if __name__ == "__main__":
     task5_csv_path = "./task5_values.csv"
     task7_csv_path = "./task7_values.csv"
 
-    # task1_func(task1_csv_path, all_pr_df)
-    # task2_func(task2_csv_path, all_repo_df)
-    # task3_func(task3_csv_path, pr_task_type_df)
-    # task4_func(task4_csv_path, pr_commit_details_df)
+    task1_func(task1_csv_path, all_pr_df)
+    task2_func(task2_csv_path, all_repo_df)
+    task3_func(task3_csv_path, pr_task_type_df)
+    task4_func(task4_csv_path, pr_commit_details_df)
     task5_func(task5_csv_path)
-    # task7_func(task7_csv_path)
+    task7_func(task7_csv_path)
