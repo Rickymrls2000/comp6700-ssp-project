@@ -567,6 +567,7 @@ if __name__ == "__main__":
         print("SUCCESS: Dataframes were loaded locally")
     except:
         print("FAILED: Dataframes were NOT loaded locally")
+        print("Staring download of files locally...")
         # For Task 1 (all_pull_request table)
         all_pr_df = pd.read_parquet("hf://datasets/hao-li/AIDev/all_pull_request.parquet")
 
