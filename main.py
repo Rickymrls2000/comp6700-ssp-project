@@ -25,25 +25,6 @@ logger.addHandler(file_handler)
 # Set the logger level to DEBUG to allow us to see DEBUG messages and greater (e.g. ERROR)
 logger.setLevel(logging.DEBUG)
 
-
-# Helper functions (might be able to be scratched...)
-def update_stop_characters(text : str):
-    if(text == None):
-        return ""
-    
-    stop_chars = [',', ';','|']
-    for c in stop_chars:
-        text.replace(c, f"'{c}'")
-
-    # Remove ANY single double quotes (") and replace with "" to not have issues
-    text.replace('"', '""')
-
-    # Use regular expression to match any whitespace character that isn't a space
-    # from the string
-    text = re.sub(r'[^\S ]', '', text)
-
-    return text
-
 # NOTE: Provided by Claude when requesting how to filter specific cell from dataset with issues
 def clean_markdown_for_csv(text):
     """
