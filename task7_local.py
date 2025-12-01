@@ -24,7 +24,6 @@ logger.addHandler(file_handler)
 # Set the logger level to DEBUG to allow us to see DEBUG messages and greater (e.g. ERROR)
 logger.setLevel(logging.DEBUG)
 
-# TODO: Make sure this matches main.py task7_func()
 def task7_func(path_for_csv : str):
     '''
     Create an additional column called VULNERABLEFILE in the CSV from Task-4. It will be a Boolean flag: 1 or 0. 
@@ -47,24 +46,22 @@ def task7_func(path_for_csv : str):
     }
 
     # Load CSV from Task-4 and add new column
-    # TODO: preserve this task7_dataframe and instead make new one to pull out scans
     task7_df = pd.read_csv("pr_commit_details.csv", dtype=column_data_types)
     task7_df['vulnerablefile'] = 0
 
     print(f"Count for Task7 prior to status and Python file check: {len(task7_df)}")
 
-    # Iterate through all rows and determine if this row meets the criteria listed above
+    # Print out the unique status values possible in this column to determine which should be chosen for filter
     unique_status_vals = task7_df['status'].unique()
-
-    # NOTE Pull the row if the status value is modified, added, or renamed (should we include renamed?)
     print(f"Unique Status Values= {unique_status_vals}")
+
     # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed' (should we include renamed?)
     status_vals_for_avail_file = ['modified', 'added', 'renamed']
     filtered_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
 
     print(f"New row count for filtered task7_df after status check: {len(filtered_df)}/{len(task7_df)}")
     
-    # NOTE: Use function that checks if a file is a Python file (should end in .py)
+    # Use function that checks if a file is a Python file (should end in .py)
     filtered_df = filtered_df[filtered_df['filename'].apply(is_python_file)]
 
     print(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
@@ -92,14 +89,13 @@ def task7_func(path_for_csv : str):
             
             if(download_path == None):
                 # NOTE: This is where this differs from the same function in main.py.
-                # In this case, we don't attempt to download the file here if it doesn't exist
-                # locally.
+                # In this case, we don't attempt to download the file here if it doesn't exist locally.
                 logger.debug(f"{repo_url}{pr_filepath} has NOT been downloaded locally! - not scanning file")
                 continue
             else:
                 logger.debug(f"{repo_url}{pr_filepath} has already been downloaded!")
 
-            # TODO: Run bandit on downloaded file and store in output file
+            # Run bandit on downloaded file and store in output file
             command = ["bandit", "-r", download_path]
             scan_output = subprocess.run(command, capture_output=True, text=True)
             print(f"Output (type:{type(scan_output.stdout)}: {scan_output.stdout})")

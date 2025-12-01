@@ -108,8 +108,6 @@ def task1_func(path : str, df : pd.DataFrame):
     new_df['id'] = new_df['id'].astype('int64')
     new_df['agent'] = new_df['agent'].astype(str)
     new_df['body'] = new_df['body'].astype(str)
-    # TODO: Determine if I need to actually convert this or not for CSVs to work...
-    # new_df['repo_id'] = new_df['repo_id'].astype('int64')
     new_df['repo_url'] = new_df['repo_url'].astype(str)
     
 
@@ -205,8 +203,6 @@ def task4_func(path : str, df : pd.DataFrame):
     new_df['patch'] = new_df['patch'].astype(str)
     
     # Adjust characters that might cause issues in CSV delimiters 
-    # TODO: might need different type of scrubbing for saving to CSV for patch diff string 
-    # has @, +, -, etc.
     new_df['message'] = new_df['message'].apply(clean_markdown_for_csv)
     new_df['filename'] = new_df['filename'].apply(clean_markdown_for_csv)
     new_df['patch'] = new_df['patch'].apply(clean_markdown_for_csv)
@@ -233,15 +229,12 @@ def task5_func(path_for_csv : str):
     attack, bypass, backdoor, threat, expose, breach, violate, fatal, blacklist, overrun, and insecure.
     '''
     print("Starting Task5...")
-    # 1.) Get the ID and Agent name from the "all_pull_requests.csv" and "all_repository.csv"
-    # "all_repository.csv" will have: Repo ID - NOTE: Might not need this...
+    # 1.) Get the ID and Agent name from the "all_pull_requests.csv"
     # "all_pull_requests.csv" will have: Repo ID, PR_ID, PR Agent, PR Title/Body
-    # "pr_commit_details.csv" will have: PR_ID, Commit Message (N/A) NOTE: Not needed...
     # "pr_task_type" will have: PR_ID, title, reason, type (NEED), confidence (NEED)
     column_names = ['id', 'agent', 'type', 'confidence', 'security']
     task5_df = pd.DataFrame(columns=column_names)
     pr_df = pd.read_csv("all_pull_requests.csv")
-    # pr_details_df = pd.read_csv("pr_commit_details.csv")
     pr_task_type_df = pd.read_csv("pr_task_type.csv")
 
     no_task_type_for_pr_cnt = 0
@@ -265,7 +258,6 @@ def task5_func(path_for_csv : str):
             no_task_type_for_pr_cnt += 1
             continue
         else:
-            # print(f"YUHHHHHHHHHH - got {len(pr_from_task_type)} rows")
             pr_matches_cnt += 1
 
         
@@ -343,24 +335,22 @@ def task7_func(path_for_csv : str):
     }
 
     # Load CSV from Task-4 and add new column
-    # TODO: preserve this task7_dataframe and instead make new one to pull out scans
     task7_df = pd.read_csv("pr_commit_details.csv", dtype=column_data_types)
     task7_df['vulnerablefile'] = 0
 
     print(f"Count for Task7 prior to status and Python file check: {len(task7_df)}")
 
-    # Iterate through all rows and determine if this row meets the criteria listed above
+    # Print out the unique status values possible in this column to determine which should be chosen for filter
     unique_status_vals = task7_df['status'].unique()
-
-    # NOTE Pull the row if the status value is modified, added, or renamed (should we include renamed?)
     print(f"Unique Status Values= {unique_status_vals}")
-    # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed' (should we include renamed?)
+
+    # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed'
     status_vals_for_avail_file = ['modified', 'added', 'renamed']
     filtered_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
 
     print(f"New row count for filtered task7_df after status check: {len(filtered_df)}/{len(task7_df)}")
     
-    # NOTE: Use function that checks if a file is a Python file (should end in .py)
+    # Use function that checks if a file is a Python file (should end in .py)
     filtered_df = filtered_df[filtered_df['filename'].apply(is_python_file)]
 
     print(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
@@ -397,7 +387,7 @@ def task7_func(path_for_csv : str):
             else:
                 logger.debug(f"{repo_url}{pr_filepath} has already been downloaded!")
 
-            # TODO: Run bandit on downloaded file and store in output file
+            # Run bandit on downloaded file and store in output file
             command = ["bandit", "-r", download_path]
             scan_output = subprocess.run(command, capture_output=True, text=True)
             print(f"Output (type:{type(scan_output.stdout)}: {scan_output.stdout})")
@@ -502,20 +492,17 @@ def download_github_file(repo_url : str, file_path : str, output_dir='./local-gi
         
         # If main doesn't work, try 'master' branch
         if response.status_code == 404:
-            # print(f"404 received on 'main' with this URL: {raw_url}")
             logger.warning(f"404 received on 'main' with this URL: {raw_url}")
             raw_url = f"https://raw.githubusercontent.com/{owner}/{repo}/master/{file_path}"
             response = requests.get(raw_url)
         
         response.raise_for_status()
         
-        # Create output directory structure
-        # TODO update this to include a better default path for the output directory (maybe just owner and repo name?)
+        # Create output directory structure for downloaded files from external repos
         full_output_path = f"{output_dir}/{owner}-{repo}/"
         output_path = Path(full_output_path) / file_path
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # print(f"Saving file to {full_output_path}")
         logger.debug(f"Saving file to {full_output_path}")
         
         # Write the file
