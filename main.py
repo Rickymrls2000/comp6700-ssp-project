@@ -90,13 +90,20 @@ def task1_func(path : str, df : pd.DataFrame):
     new_df['agent'] = new_df['agent'].astype(str)
     new_df['body'] = new_df['body'].astype(str)
     new_df['repo_url'] = new_df['repo_url'].astype(str)
-    
-
 
     # Adjust characters that might cause issues in CSV delimiters
     new_df['title'] = new_df['title'].apply(clean_markdown_for_csv)
     new_df['body'] = new_df['body'].apply(clean_markdown_for_csv)
     new_df['agent'] = new_df['agent'].apply(clean_markdown_for_csv)
+
+    new_df = new_df.rename(columns={
+        'title': 'TITLE',
+        'id': 'ID',
+        'agent':'AGENTNAME',
+        'body':'BODYSTRING',
+        'repo_id':'REPOID',
+        'repo_url':'REPOURL'
+    })
 
     new_df.to_csv(path)
     print(f'Data Types for Task1: {new_df.dtypes}')
@@ -120,6 +127,13 @@ def task2_func(path : str, df : pd.DataFrame):
     new_df['language'] = new_df['language'].astype(str)
     new_df['stars'] = new_df['stars'].astype('float64')
     new_df['url'] = new_df['url'].astype(str)
+
+    new_df = new_df.rename(columns={
+        'id':'REPOID',
+        'language':'LANG',
+        'stars':'STARS',
+        'url':'REPOURL'
+    })
 
     new_df.to_csv(path)
     print(f'Data Types for Task2: {new_df.dtypes}')
@@ -149,6 +163,15 @@ def task3_func(path : str, df : pd.DataFrame):
     # Adjust characters that might cause issues in CSV delimiters 
     new_df['title'] = new_df['title'].apply(clean_markdown_for_csv)
     new_df['reason'] = new_df['reason'].apply(clean_markdown_for_csv)
+
+    new_df = new_df.rename(columns={
+        'id':'PRID',
+        'title':'PRTITLE',
+        'reason':'PRREASON',
+        'type':'PRTYPE',
+        'confidence':'CONFIDENCE'
+
+    })
 
     new_df.to_csv(path)
     print(f'Data Types for Task3: {new_df.dtypes}')
@@ -188,6 +211,18 @@ def task4_func(path : str, df : pd.DataFrame):
     new_df['filename'] = new_df['filename'].apply(clean_markdown_for_csv)
     new_df['patch'] = new_df['patch'].apply(clean_markdown_for_csv)
 
+    new_df = new_df.rename(columns={
+        'pr_id':'PRID',
+        'sha':'PRSHA',
+        'message':'PRCOMMITMESSAGE',
+        'filename':'PRFILE',
+        'status':'PRSTATUS',
+        'additions':'PRADDS',
+        'deletions':'PRDELSS',
+        'changes':'PRCHANGECOUNT',
+        'patch':'PRDIFF'
+    })
+
     new_df.to_csv(path)
     print(f'Data Types for Task4: {new_df.dtypes}')
     print("Task4 Complete")
@@ -213,7 +248,7 @@ def task5_func(path_for_csv : str):
     # 1.) Get the ID and Agent name from the "all_pull_requests.csv"
     # "all_pull_requests.csv" will have: Repo ID, PR_ID, PR Agent, PR Title/Body
     # "pr_task_type" will have: PR_ID, title, reason, type (NEED), confidence (NEED)
-    column_names = ['id', 'agent', 'type', 'confidence', 'security']
+    column_names = ['ID', 'AGENT', 'TYPE', 'CONFIDENCE', 'SECURITY']
     task5_df = pd.DataFrame(columns=column_names)
     pr_df = pd.read_csv("all_pull_requests.csv")
     pr_task_type_df = pd.read_csv("pr_task_type.csv")
@@ -223,14 +258,14 @@ def task5_func(path_for_csv : str):
 
     for index, row in pr_df.iterrows():
         # Get ID, Agent, Title, and Body from "all_pull_requests.csv"
-        pr_id = row['id']
-        pr_agent = str(row['agent'])
-        pr_title = str(row['title'])
-        pr_body = str(row['body'])
+        pr_id = row['ID']
+        pr_agent = str(row['AGENTNAME'])
+        pr_title = str(row['TITLE'])
+        pr_body = str(row['BODYSTRING'])
         
         # Pull out the 'type' and 'confidence' using PR_ID from current row
         # using "pr_task_type.csv" dataframe
-        pr_from_task_type = pr_task_type_df[pr_task_type_df['id'] == pr_id]
+        pr_from_task_type = pr_task_type_df[pr_task_type_df['PRID'] == pr_id]
         
         if(len(pr_from_task_type) != 1):
             # Uncomment for more information, but had lots of errors with lots of PR IDs not being
@@ -243,8 +278,8 @@ def task5_func(path_for_csv : str):
 
         
         # Store 'type' and 'confidence' now that we have PR row
-        pr_type = pr_from_task_type['type'].iloc[0]
-        pr_confidence = pr_from_task_type['confidence'].iloc[0]
+        pr_type = pr_from_task_type['PRTYPE'].iloc[0]
+        pr_confidence = pr_from_task_type['CONFIDENCE'].iloc[0]
 
         pr_security = determine_security_status(pr_title, pr_body)
 
@@ -304,35 +339,35 @@ def task7_func(path_for_csv : str):
     logger.info("Starting Task7...")
 
     column_data_types = {
-        'pr_id': 'int64',
-        'sha': 'str',
-        'message': 'str',
-        'filename': 'str',
-        'status': 'str',
-        'additions': 'float64',
-        'deletions': 'float64',
-        'changes': 'float64',
-        'patch': 'str',
+        'PRID': 'int64',
+        'PRSHA': 'str',
+        'PRCOMMITMESSAGE': 'str',
+        'PRFILE': 'str',
+        'PRSTATUS': 'str',
+        'PRADDS': 'float64',
+        'PRDELSS': 'float64',
+        'PRCHANGECOUNT': 'float64',
+        'PRDIFF': 'str',
     }
 
     # Load CSV from Task-4 and add new column
     task7_df = pd.read_csv("pr_commit_details.csv", dtype=column_data_types)
-    task7_df['vulnerablefile'] = 0
+    task7_df['VULNERABLEFILE'] = 0
 
     print(f"Count for Task7 prior to status and Python file check: {len(task7_df)}")
 
     # Print out the unique status values possible in this column to determine which should be chosen for filter
-    unique_status_vals = task7_df['status'].unique()
+    unique_status_vals = task7_df['PRSTATUS'].unique()
     print(f"Unique Status Values= {unique_status_vals}")
 
     # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed'
     status_vals_for_avail_file = ['modified', 'added', 'renamed']
-    filtered_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
+    filtered_df = task7_df[task7_df['PRSTATUS'].isin(status_vals_for_avail_file)]
 
     print(f"New row count for filtered task7_df after status check: {len(filtered_df)}/{len(task7_df)}")
     
     # Use function that checks if a file is a Python file (should end in .py)
-    filtered_df = filtered_df[filtered_df['filename'].apply(is_python_file)]
+    filtered_df = filtered_df[filtered_df['PRFILE'].apply(is_python_file)]
 
     print(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
     logger.debug(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
@@ -346,12 +381,12 @@ def task7_func(path_for_csv : str):
     with open(bandit_output_path, "w") as f:
         for index, row in filtered_df.iterrows():
             # First, get the pr_id so you can find the repo information in the all_pr_df
-            pr_id = row['pr_id']
-            pr_filepath = row['filename']
+            pr_id = row['PRID']
+            pr_filepath = row['PRFILE']
 
             # Next, get the URL from the all_pr_df
-            all_pr_df_row = all_pr_df.loc[all_pr_df['id'] == pr_id]
-            repo_url = all_pr_df_row['repo_url'].item()
+            all_pr_df_row = all_pr_df.loc[all_pr_df['ID'] == pr_id]
+            repo_url = all_pr_df_row['REPOURL'].item()
             
             # Attempt download of the file and get filepath if it exists
             print(f"Checking file: {pr_filepath}")
@@ -379,7 +414,7 @@ def task7_func(path_for_csv : str):
             logger.debug(f"Issue Count for {download_path}: {issue_cnt}")
             if(issue_cnt >= 1):
                 # Set the 'vulnerablefile' column to 1 for this row in our main task7_df
-                task7_df.at[index, 'vulnerablefile'] = 1
+                task7_df.at[index, 'VULNERABLEFILE'] = 1
                 logger.info(f"Logging file as VULNERABLE: {download_path} - task7_df_row_idx = {index}")
 
     # Uncomment this once you've figured out the unique row thing

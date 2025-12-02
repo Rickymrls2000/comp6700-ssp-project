@@ -34,35 +34,35 @@ def task7_func(path_for_csv : str):
     logger.info("Starting Task7...")
 
     column_data_types = {
-        'pr_id': 'int64',
-        'sha': 'str',
-        'message': 'str',
-        'filename': 'str',
-        'status': 'str',
-        'additions': 'float64',
-        'deletions': 'float64',
-        'changes': 'float64',
-        'patch': 'str',
+        'PRID': 'int64',
+        'PRSHA': 'str',
+        'PRCOMMITMESSAGE': 'str',
+        'PRFILE': 'str',
+        'PRSTATUS': 'str',
+        'PRADDS': 'float64',
+        'PRDELSS': 'float64',
+        'PRCHANGECOUNT': 'float64',
+        'PRDIFF': 'str',
     }
 
     # Load CSV from Task-4 and add new column
     task7_df = pd.read_csv("pr_commit_details.csv", dtype=column_data_types)
-    task7_df['vulnerablefile'] = 0
+    task7_df['VULNERABLEFILE'] = 0
 
     print(f"Count for Task7 prior to status and Python file check: {len(task7_df)}")
 
     # Print out the unique status values possible in this column to determine which should be chosen for filter
-    unique_status_vals = task7_df['status'].unique()
+    unique_status_vals = task7_df['PRSTATUS'].unique()
     print(f"Unique Status Values= {unique_status_vals}")
 
     # Filter out rows in df that don't have status value as 'modified', 'added', or 'renamed' (should we include renamed?)
     status_vals_for_avail_file = ['modified', 'added', 'renamed']
-    filtered_df = task7_df[task7_df['status'].isin(status_vals_for_avail_file)]
+    filtered_df = task7_df[task7_df['PRSTATUS'].isin(status_vals_for_avail_file)]
 
     print(f"New row count for filtered task7_df after status check: {len(filtered_df)}/{len(task7_df)}")
     
     # Use function that checks if a file is a Python file (should end in .py)
-    filtered_df = filtered_df[filtered_df['filename'].apply(is_python_file)]
+    filtered_df = filtered_df[filtered_df['PRFILE'].apply(is_python_file)]
 
     print(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
     logger.debug(f"New row count for filtered task7_df after python check: {len(filtered_df)}/{len(task7_df)}")
@@ -76,12 +76,12 @@ def task7_func(path_for_csv : str):
     with open(bandit_output_path, "w") as f:
         for index, row in filtered_df.iterrows():
             # First, get the pr_id so you can find the repo information in the all_pr_df
-            pr_id = row['pr_id']
-            pr_filepath = row['filename']
+            pr_id = row['PRID']
+            pr_filepath = row['PRFILE']
 
             # Next, get the URL from the all_pr_df
-            all_pr_df_row = all_pr_df.loc[all_pr_df['id'] == pr_id]
-            repo_url = all_pr_df_row['repo_url'].item()
+            all_pr_df_row = all_pr_df.loc[all_pr_df['ID'] == pr_id]
+            repo_url = all_pr_df_row['REPOURL'].item()
             
             # Attempt download of the file and get filepath if it exists
             print(f"Checking file: {pr_filepath}")
@@ -106,7 +106,7 @@ def task7_func(path_for_csv : str):
             logger.debug(f"Issue Count for {download_path}: {issue_cnt}")
             if(issue_cnt >= 1):
                 # Set the 'vulnerablefile' column to 1 for this row in our main task7_df
-                task7_df.at[index, 'vulnerablefile'] = 1
+                task7_df.at[index, 'VULNERABLEFILE'] = 1
                 logger.info(f"Logging file as VULNERABLE: {download_path} - task7_df_row_idx = {index}")
 
     print("Task7 Complete")
