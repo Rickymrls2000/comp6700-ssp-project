@@ -105,7 +105,7 @@ def task1_func(path : str, df : pd.DataFrame):
         'repo_url':'REPOURL'
     })
 
-    new_df.to_csv(path)
+    new_df.to_csv(path, index=False)
     print(f'Data Types for Task1: {new_df.dtypes}')
     print("Task1 Complete!")
 
@@ -135,7 +135,7 @@ def task2_func(path : str, df : pd.DataFrame):
         'url':'REPOURL'
     })
 
-    new_df.to_csv(path)
+    new_df.to_csv(path, index=False)
     print(f'Data Types for Task2: {new_df.dtypes}')
     print("Task2 Complete")
 
@@ -173,7 +173,7 @@ def task3_func(path : str, df : pd.DataFrame):
 
     })
 
-    new_df.to_csv(path)
+    new_df.to_csv(path, index=False)
     print(f'Data Types for Task3: {new_df.dtypes}')
     print("Task3 Complete")
 
@@ -223,7 +223,7 @@ def task4_func(path : str, df : pd.DataFrame):
         'patch':'PRDIFF'
     })
 
-    new_df.to_csv(path)
+    new_df.to_csv(path, index=False)
     print(f'Data Types for Task4: {new_df.dtypes}')
     print("Task4 Complete")
 
@@ -287,7 +287,7 @@ def task5_func(path_for_csv : str):
         task5_df.loc[len(task5_df)] = [pr_id, pr_agent, pr_type, pr_confidence, pr_security]
 
     # Now save dataframe as csv
-    task5_df.to_csv(path_for_csv)
+    task5_df.to_csv(path_for_csv, index=False)
     print(f"Task5 - Found {pr_matches_cnt} out of {len(pr_df)} matches in All PRs and Task Type CSVs")
     print(f"Task5 - {no_task_type_for_pr_cnt} out of {len(pr_df)} PRs without matches")
     print("Task5 Complete")
@@ -418,7 +418,7 @@ def task7_func(path_for_csv : str):
                 logger.info(f"Logging file as VULNERABLE: {download_path} - task7_df_row_idx = {index}")
 
     # Uncomment this once you've figured out the unique row thing
-    task7_df.to_csv(path_for_csv)
+    task7_df.to_csv(path_for_csv, index=False)
     print("Task7 Complete")
 
 def is_python_file(filepath : str):

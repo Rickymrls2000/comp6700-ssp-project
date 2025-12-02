@@ -25,16 +25,16 @@ def collect_pr_info(output_filename='./script-output/task6_pr_info.txt'):
     with open(output_filename, 'w') as file:
         for index, row in task5_df.iterrows():
             # Get PR ID to search in all_pull_requests.csv
-            pr_id = row['id']
-            security_flag = row['security']
+            pr_id = row['ID']
+            security_flag = row['SECURITY']
 
             # Pull out the 'title' and 'body' information for the PR
-            pr_row = all_prs_df[all_prs_df['id'] == pr_id]
+            pr_row = all_prs_df[all_prs_df['ID'] == pr_id]
             
             if(len(pr_row) == 1 and security_flag == 1):
                 # Make lowercase so we can match what's in main.py
-                pr_title = str(pr_row['title'].iloc[0]).lower()
-                pr_body = str(pr_row['body'].iloc[0]).lower()
+                pr_title = str(pr_row['TITLE'].iloc[0]).lower()
+                pr_body = str(pr_row['BODYSTRING'].iloc[0]).lower()
 
                 pr_title = highlight_security_keywords(pr_title)
                 pr_body = highlight_security_keywords(pr_body)
@@ -78,12 +78,12 @@ def compare_task5_and_task6():
         print("ERROR, could not open files")
         return
     
-    cols_to_compare = ["agent", "type", "confidence", "security"]
+    cols_to_compare = ["AGENT", "TYPE", "CONFIDENCE", "SECURITY"]
 
     
     # Googled around and found this as an option to compare the two files
     # 1.) start by merging the two dataframes
-    merged_df = pd.merge(task5_pd, task6_pd, on='id', suffixes=('_file1', '_file2'), how='inner')
+    merged_df = pd.merge(task5_pd, task6_pd, on='ID', suffixes=('_file1', '_file2'), how='inner')
     
     for col in cols_to_compare:
 
